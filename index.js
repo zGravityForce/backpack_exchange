@@ -2,6 +2,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const backpack_client_1 = require("./backpack_client");
 
+const ExchangeTokenSymbol = 'PYTH_USDC'; //SOL_USDC
+const Token = ExchangeTokenSymbol.split('_')[0];
+
 function delay(ms) {
     return new Promise(resolve => {
         setTimeout(resolve, ms);
@@ -67,9 +70,9 @@ const init = async (client) => {
 
 const sellfun = async (client) => {
     //取消所有未完成订单
-    let GetOpenOrders = await client.GetOpenOrders({ symbol: "SOL_USDC" });
+    let GetOpenOrders = await client.GetOpenOrders({ symbol: ExchangeTokenSymbol });
     if (GetOpenOrders.length > 0) {
-        let CancelOpenOrders = await client.CancelOpenOrders({ symbol: "SOL_USDC" });
+        let CancelOpenOrders = await client.CancelOpenOrders({ symbol: ExchangeTokenSymbol });
         console.log(getNowFormatDate(), "取消了所有挂单");
     } else {
         console.log(getNowFormatDate(), "账号订单正常，无需取消挂单");
@@ -78,18 +81,18 @@ const sellfun = async (client) => {
     //获取账户信息
     let userbalance2 = await client.Balance();
     console.log(getNowFormatDate(), "账户信息:", userbalance2);
-    console.log(getNowFormatDate(), "正在获取sol_usdc的市场当前价格中...");
+    console.log(getNowFormatDate(), `正在获取${ExchangeTokenSymbol}的市场当前价格中...`);
     //获取当前
-    let { lastPrice: lastPriceask } = await client.Ticker({ symbol: "SOL_USDC" });
-    console.log(getNowFormatDate(), "sol_usdc的市场当前价格:", lastPriceask);
-    let quantitys = ((userbalance2.SOL.available / 2) - 0.02).toFixed(2).toString();
-    console.log(getNowFormatDate(), `正在卖出中... 卖${quantitys}个SOL`);
+    let { lastPrice: lastPriceask } = await client.Ticker({ symbol: ExchangeTokenSymbol });
+    console.log(getNowFormatDate(), `${ExchangeTokenSymbol}的市场当前价格:`, lastPriceask);
+    let quantitys = ((userbalance2[Token].available / 2) - 0.02).toFixed(2).toString();
+    console.log(getNowFormatDate(), `正在卖出中... 卖${quantitys}个${Token}`);
     let orderResultAsk = await client.ExecuteOrder({
         orderType: "Limit",
         price: lastPriceask.toString(),
         quantity: quantitys,
         side: "Ask", //卖
-        symbol: "SOL_USDC",
+        symbol: ExchangeTokenSymbol,
         timeInForce: "IOC"
     })
 
@@ -106,9 +109,9 @@ const sellfun = async (client) => {
 
 const buyfun = async (client) => {
     //取消所有未完成订单
-    let GetOpenOrders = await client.GetOpenOrders({ symbol: "SOL_USDC" });
+    let GetOpenOrders = await client.GetOpenOrders({ symbol: ExchangeTokenSymbol });
     if (GetOpenOrders.length > 0) {
-        let CancelOpenOrders = await client.CancelOpenOrders({ symbol: "SOL_USDC" });
+        let CancelOpenOrders = await client.CancelOpenOrders({ symbol: ExchangeTokenSymbol });
         console.log(getNowFormatDate(), "取消了所有挂单");
     } else {
         console.log(getNowFormatDate(), "账号订单正常，无需取消挂单");
@@ -117,11 +120,11 @@ const buyfun = async (client) => {
     //获取账户信息
     let userbalance = await client.Balance();
     console.log(getNowFormatDate(), "账户信息:", userbalance);
-    console.log(getNowFormatDate(), "正在获取sol_usdc的市场当前价格中...");
+    console.log(getNowFormatDate(), `正在获取${ExchangeTokenSymbol}的市场当前价格中...`);
     //获取当前
-    let { lastPrice } = await client.Ticker({ symbol: "SOL_USDC" });
-    console.log(getNowFormatDate(), "sol_usdc的市场当前价格:", lastPrice);
-    console.log(getNowFormatDate(), `正在买入中... 花${(userbalance.USDC.available - 2).toFixed(2).toString()}个USDC买SOL`);
+    let { lastPrice } = await client.Ticker({ symbol: ExchangeTokenSymbol });
+    console.log(getNowFormatDate(), `${ExchangeTokenSymbol}的市场当前价格:`, lastPrice);
+    console.log(getNowFormatDate(), `正在买入中... 花${(userbalance.USDC.available - 2).toFixed(2).toString()}个USDC买${Token}`);
     let quantitys = ((userbalance.USDC.available - 2) / lastPrice).toFixed(2).toString();
     console.log("1024", quantitys);
     let orderResultBid = await client.ExecuteOrder({
@@ -129,7 +132,7 @@ const buyfun = async (client) => {
         price: lastPrice.toString(),
         quantity: quantitys,
         side: "Bid", //买
-        symbol: "SOL_USDC",
+        symbol: ExchangeTokenSymbol,
         timeInForce: "IOC"
     })
     if (orderResultBid?.status == "Filled" && orderResultBid?.side == "Bid") {
@@ -148,7 +151,7 @@ const buyfun = async (client) => {
     const apikey = "";
     const client = new backpack_client_1.BackpackClient(apisecret, apikey);
     init(client);
-})()
+})()    
 
 // 卖出
 // client.ExecuteOrder({
